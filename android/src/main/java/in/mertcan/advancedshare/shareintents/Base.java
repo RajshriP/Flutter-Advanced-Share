@@ -3,7 +3,9 @@ package in.mertcan.advancedshare.shareintents;
 import io.flutter.plugin.common.PluginRegistry.Registrar;
 
 import android.content.Intent;
+import android.net.Uri;
 
+import java.util.ArrayList;
 import java.util.Map;
 
 import in.mertcan.advancedshare.FileHelper;
@@ -12,7 +14,7 @@ public abstract class Base {
     protected final Registrar registrar;
     protected Map params;
     protected String title = "Share";
-    protected FileHelper fileHelper;
+    protected ArrayList<FileHelper> fileHelpers;
     protected Intent intent;
 
     public Base(Registrar registrar) {
@@ -20,27 +22,46 @@ public abstract class Base {
     }
 
     public int share(Map params) {
-        this.intent = new Intent();
-        this.intent.setAction(Intent.ACTION_SEND);
-        this.intent.setType("text/plain");
-
         this.params = params;
-        fileHelper = getFileHelper(params);
+        Message message = new Message(params);
 
-        if (checkKey("title")) {
-            title = (String) params.get("title");
+        this.intent = new Intent();
+        if(message.urls != null && !message.urls.isEmpty() ) {
+            this.intent.setAction(Intent.ACTION_SEND);
+        } else {
+            this.intent.setAction(Intent.ACTION_SEND_MULTIPLE);
+        }
+        this.intent.setType("text/plain");
+        fileHelpers = getFileHelpers(message);
+
+        if (message.title != null) {
+            title = message.title;
         }
 
-        if (checkKey("msg")) {
-            intent.putExtra(Intent.EXTRA_TEXT, (String) params.get("msg"));
+        if (message.msg != null) {
+            intent.putExtra(Intent.EXTRA_TEXT, message.msg);
         }
 
-        if (checkKey("subject")) {
-            intent.putExtra(Intent.EXTRA_SUBJECT, (String) params.get("subject"));
+        if (message.subject != null) {
+            intent.putExtra(Intent.EXTRA_SUBJECT, message.subject);
         }
 
-        if (checkKey("url")) {
-            if (fileHelper.isFile()) {
+        if(message.urls != null) {
+            ArrayList<Uri> uris = new ArrayList<>();
+            String type = null;
+            for(FileHelper fileHelper: fileHelpers) {
+                if(fileHelper.isFile()) {
+                    uris.add(fileHelper.getUri());
+                    type = fileHelper.getType();
+                }
+            }
+            intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
+            intent.putParcelableArrayListExtra(Intent.EXTRA_STREAM, uris);
+            intent.setType(type);
+        }
+        else if (message.url != null) {
+            FileHelper fileHelper = fileHelpers.get(0);
+            if (fileHelper != null && fileHelper.isFile()) {
                 intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
                 intent.putExtra(Intent.EXTRA_STREAM, fileHelper.getUri());
                 intent.setType(fileHelper.getType());
@@ -59,24 +80,24 @@ public abstract class Base {
         }
     }
 
-    protected FileHelper getFileHelper(Map params) {
-        String url = "";
-        if (checkKey("url")) {
-            url = (String) params.get("url");
+    protected ArrayList<FileHelper> getFileHelpers(Message message) {
+        ArrayList<FileHelper> fileHelpers = new ArrayList<>();
+        if(message.urls != null) {
+            for (String url : message.urls) {
+                fileHelpers.add(getFileHelper(url, message.type));
+            }
         }
-        if (checkKey("type")) {
+        else if (message.url != null) {
+            fileHelpers.add(getFileHelper(message.url, message.type));
+        }
+        return fileHelpers;
+    }
+
+    protected FileHelper getFileHelper(String url, String type) {
+        if (type != null) {
             return new FileHelper(registrar, (String) url, (String) params.get("type"));
         } else {
             return new FileHelper(registrar, (String) url);
         }
     }
-
-    public boolean checkKey(String key) {
-        if (params != null && !params.isEmpty()) {
-            return params.get(key) != null;
-        }
-
-        return false;
-    }
-
 }

@@ -20,7 +20,6 @@ public class FileHelper {
     private String url;
     private Uri uri;
     private String type;
-    private String extension;
 
     public FileHelper(Registrar registrar, String url) {
         this.registrar = registrar;
@@ -105,7 +104,7 @@ public class FileHelper {
 
     public Uri getUri() {
         final MimeTypeMap mime = MimeTypeMap.getSingleton();
-        extension = mime.getExtensionFromMimeType(getType());
+        String extension = mime.getExtensionFromMimeType(getType());
 
         if (isBase64File()) {
             final String tempPath = registrar.context().getCacheDir().getPath();

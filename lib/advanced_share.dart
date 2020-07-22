@@ -12,12 +12,14 @@ class AdvancedShare {
   static Future<int> generic(
       {String msg,
       String url,
+      List<String> urls,
       String title,
       String subject,
       String type}) async {
     final Map<String, dynamic> params = <String, dynamic>{
       'msg': msg,
       'url': url,
+      'urls': urls,
       'title': title,
       'subject': subject,
       'type': type,
@@ -25,20 +27,24 @@ class AdvancedShare {
     return await exec(params);
   }
 
-  static Future<int> whatsapp({String msg, String url}) async {
+  static Future<int> whatsapp(
+      {String msg, String url, List<String> urls}) async {
     final Map<String, dynamic> params = <String, dynamic>{
       'msg': msg,
       'url': url,
+      'urls': urls,
       'direct': 'whatsapp'
     };
 
     return await exec(params);
   }
 
-  static Future<int> gmail({String subject, String msg, String url}) async {
+  static Future<int> gmail(
+      {String subject, String msg, String url, List<String> urls}) async {
     final Map<String, dynamic> params = <String, dynamic>{
       'msg': msg,
       'url': url,
+      'urls': urls,
       'subject': subject,
       'direct': 'gmail'
     };
