@@ -13,6 +13,7 @@ import android.webkit.MimeTypeMap;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.util.Random;
 
 public class FileHelper {
     private final Registrar registrar;
@@ -102,13 +103,24 @@ public class FileHelper {
         return result;
     }
 
+    private String randomFileName(int size) {
+        String chars = "abcdefghijklmnopqrstuvxyz0123456789";
+        StringBuilder sb = new StringBuilder(size);
+        Random rand = new Random();
+        for (int i = 0; i < size; i++) {
+            char c = chars.charAt(rand.nextInt(chars.length()));
+            sb.append(c);
+        }
+        return sb.toString();
+    }
+
     public Uri getUri() {
         final MimeTypeMap mime = MimeTypeMap.getSingleton();
         String extension = mime.getExtensionFromMimeType(getType());
 
         if (isBase64File()) {
             final String tempPath = registrar.context().getCacheDir().getPath();
-            final String prefix = "" + System.currentTimeMillis() / 1000;
+            final String prefix = randomFileName(6) + "_" + System.currentTimeMillis() / 1000;
             String encodedFile = uri.getSchemeSpecificPart()
                     .substring(uri.getSchemeSpecificPart().indexOf(";base64,") + 8);
             try {
