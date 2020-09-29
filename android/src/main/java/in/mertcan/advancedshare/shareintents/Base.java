@@ -27,9 +27,9 @@ public abstract class Base {
 
         this.intent = new Intent();
         if(message.urls != null && !message.urls.isEmpty() ) {
-            this.intent.setAction(Intent.ACTION_SEND);
-        } else {
             this.intent.setAction(Intent.ACTION_SEND_MULTIPLE);
+        } else {
+            this.intent.setAction(Intent.ACTION_SEND);
         }
         this.intent.setType("text/plain");
         fileHelpers = getFileHelpers(message);
@@ -48,7 +48,7 @@ public abstract class Base {
 
         if(message.urls != null) {
             ArrayList<Uri> uris = new ArrayList<>();
-            String type = null;
+            String type = null; // assumption: all the files have the same type
             for(FileHelper fileHelper: fileHelpers) {
                 if(fileHelper.isFile()) {
                     uris.add(fileHelper.getUri());
